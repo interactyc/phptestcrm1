@@ -1,23 +1,19 @@
 <?php
-require_once 'includes/db_config.php';
-require_once 'includes/auth.php';
+require 'includes/db_config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $taskId = $_POST['task_id'];
-  $status = $_POST['status'];
+$data = json_decode(file_get_contents('php://input'), true);
+$taskId = $data['task_id'] ?? null;
+$status = $data['status'] ?? null;
 
-  $allowedStatuses = ['new', 'in_progress', 'completed'];
-  if (!in_array($status, $allowedStatuses)) {
-    http_response_code(400);
-    echo "Недопустимый статус!";
-    exit;
-  }
-
-  $stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
-  $stmt->execute([$status, $taskId]);
-
-  echo "Статус задачи обновлен!";
+if ($taskId && in_array($status, ['new', 'in_progress', 'completed'])) {
+    try {
+        $stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
+        $stmt->execute([$status, $taskId]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
 } else {
-  http_response_code(405);
-  echo "Метод не поддерживается!";
+    echo json_encode(['success' => false, 'message' => 'Неверные данные']);
 }
+?>
