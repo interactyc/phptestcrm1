@@ -1,0 +1,145 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+
+form {
+  max-width: 400px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+.logout-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.logout-btn button {
+  width: auto;
+  padding: 8px 15px;
+  background-color: #dc3545;
+}
+
+.logout-btn button:hover {
+  background-color: #c82333;
+}
+
+#product-modal {
+    z-index: 1000;
+    width: 40%;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    border-radius: 5px;
+}
+
+#product-modal input {
+    display: block;
+    margin: 10px 0;
+    width: 95%;
+    padding: 8px;
+}
+
+#product-modal button {
+    margin: 5px;
+    padding: 8px 15px;
+}
+
+/* Контейнер для кнопок */
+.buttons-container {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  background: #007bff;
+  color: white;
+  padding: 10px 15px;
+  text-decoration: none;
+  border-radius: 3px;
+}
+
+.btn:hover {
+  background: #0056b3;
+}
+
+/* Кнопка выхода внизу */
+.logout-footer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.logout-footer button {
+  background: #dc3545;
+  padding: 8px 15px;
+}
+
+.logout-footer button:hover {
+  background: #c82333;
+}
+
+.btn-export {
+    background: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-export:hover {
+    background: #218838;
+}
