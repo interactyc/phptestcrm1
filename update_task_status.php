@@ -1,6 +1,4 @@
 <?php
-// update_task_status.php
-
 require 'includes/db_config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

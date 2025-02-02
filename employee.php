@@ -1,101 +1,36 @@
 <?php
-session_start();
-require 'includes/db_config.php';
 require 'includes/auth.php';
+require 'includes/db_config.php';
 
+// Получаем ID текущего пользователя
 $userId = $_SESSION['user_id'];
-$filter = $_GET['filter'] ?? 'active'; // По умолчанию показываем активные задачи
-$project_filter = $_GET['project'] ?? null;
 
-// Формируем SQL-запрос в зависимости от фильтра
+// Получаем GET-параметр для фильтрации по статусу и сортировки
+$status_filter = $_GET['status'] ?? null;
+$sort_by = $_GET['sort'] ?? 'deadline'; // По умолчанию сортировка по дедлайну
+$order = $_GET['order'] ?? 'ASC'; // По умолчанию сортировка по возрастанию
+
+// Загружаем задачи для текущего сотрудника с учетом фильтра и сортировки
 $query = "
-    SELECT tasks.*, products.factory_number, products.project_name, products.name 
+    SELECT tasks.*, products.name as product_name 
     FROM tasks 
     JOIN products ON tasks.product_id = products.id 
-    WHERE tasks.assigned_to = :user_id
+    WHERE assigned_to = ?
 ";
+$params = [$userId];
 
-$params = [':user_id' => $userId];
-
-if ($filter === 'active') {
-    $query .= " AND tasks.status IN ('new', 'in_progress')";
-} elseif ($filter === 'completed') {
-    $query .= " AND tasks.status = 'completed'";
+if ($status_filter) {
+    $query .= " AND status = ?";
+    $params[] = $status_filter;
 }
 
-if ($project_filter) {
-    $query .= " AND products.project_name = :project_name";
-    $params[':project_name'] = $project_filter;
-}
+// Добавляем сортировку
+$query .= " ORDER BY $sort_by $order";
 
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $tasks = $stmt->fetchAll();
-
-// Получаем список всех проектов для фильтра
-$projects = $pdo->query("SELECT DISTINCT project_name FROM products")->fetchAll(PDO::FETCH_COLUMN);
 ?>
-
-<!-- employee.php -->
-
-<h2>Фильтр</h2>
-
-<!-- Фильтры -->
-<div style="margin-bottom: 20px;">
-    <form method="GET" style="display: inline-block; margin-right: 20px;">
-        <label for="filter">Показать:</label>
-        <select name="filter" id="filter" onchange="this.form.submit()">
-            <option value="active" <?= $filter === 'active' ? 'selected' : '' ?>>Активные задачи</option>
-            <option value="completed" <?= $filter === 'completed' ? 'selected' : '' ?>>Завершенные задачи</option>
-        </select>
-    </form>
-
-    <form method="GET" style="display: inline-block;">
-        <label for="project">Проект:</label>
-        <select name="project" id="project" onchange="this.form.submit()">
-            <option value="">Все проекты</option>
-            <?php foreach ($projects as $project): ?>
-                <option value="<?= htmlspecialchars($project) ?>" <?= $project_filter === $project ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($project) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </form>
-</div>
-
-<!-- employee.php -->
-
-<table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse;">
-    <thead>
-        <tr>
-            <th>ПЛАС.</th>
-            <th>ПРОЕКТ</th>
-            <th>НАЗВАНИЕ</th>
-            <th>КОЛИЧЕСТВО</th>
-            <th>ДЕДЛАЙН</th>
-            <th>СТАТУС</th>
-            <th>ДЕЙСТВИЯ</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($tasks as $task): ?>
-            <tr>
-                <td><?= htmlspecialchars($task['factory_number']) ?></td>
-                <td><?= htmlspecialchars($task['project_name']) ?></td>
-                <td><?= htmlspecialchars($task['name']) ?></td>
-                <td><?= htmlspecialchars($task['quantity']) ?></td>
-                <td><?= htmlspecialchars($task['deadline']) ?></td>
-                <td><?= htmlspecialchars($task['status']) ?></td>
-                <td>
-                    <?php if ($task['status'] !== 'completed'): ?>
-                        <button onclick="updateTaskStatus(<?= $task['id'] ?>, 'in_progress')">В работу</button>
-                        <button onclick="updateTaskStatus(<?= $task['id'] ?>, 'completed')">Завершить</button>
-                    <?php endif; ?>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-		
-	<!-- employee.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,15 +41,64 @@ $projects = $pdo->query("SELECT DISTINCT project_name FROM products")->fetchAll(
 </head>
 <body>
     <h1>Ваши задачи</h1>
-    <!-- Таблица задач -->
-    <table>
-        <!-- Строки задач -->
-    </table>
 
-    <!-- Подключение JavaScript -->
+    <!-- Фильтры -->
+    <form method="GET" style="margin-bottom: 20px;">
+        <label for="status">Фильтр по статусу:</label>
+        <select name="status" id="status">
+            <option value="">Все задачи</option>
+            <option value="new" <?= $status_filter === 'new' ? 'selected' : '' ?>>Новые</option>
+            <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>В работе</option>
+            <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Завершенные</option>
+        </select>
+
+        <!-- Сортировка -->
+        <label for="sort">Сортировать по:</label>
+        <select name="sort" id="sort">
+            <option value="deadline" <?= $sort_by === 'deadline' ? 'selected' : '' ?>>Дедлайн</option>
+            <option value="created_at" <?= $sort_by === 'created_at' ? 'selected' : '' ?>>Дата создания</option>
+        </select>
+
+        <label for="order">Порядок:</label>
+        <select name="order" id="order">
+            <option value="ASC" <?= $order === 'ASC' ? 'selected' : '' ?>>По возрастанию</option>
+            <option value="DESC" <?= $order === 'DESC' ? 'selected' : '' ?>>По убыванию</option>
+        </select>
+
+        <button type="submit">Применить</button>
+    </form>
+
+    <!-- Таблица задач -->
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Изделие</th>
+                <th>Количество</th>
+                <th>Дедлайн</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($tasks as $task): ?>
+                <tr>
+                    <td><?= htmlspecialchars($task['product_name']) ?></td>
+                    <td><?= htmlspecialchars($task['quantity']) ?></td>
+                    <td><?= htmlspecialchars($task['deadline']) ?></td>
+                    <td><?= htmlspecialchars($task['status']) ?></td>
+                    <td>
+                        <?php if ($task['status'] === 'new'): ?>
+                            <button onclick="updateTaskStatus(<?= $task['id'] ?>, 'in_progress')">В работу</button>
+                        <?php elseif ($task['status'] === 'in_progress'): ?>
+                            <button onclick="updateTaskStatus(<?= $task['id'] ?>, 'completed')">Завершить</button>
+                        <?php elseif ($task['status'] === 'completed'): ?>
+                            <button onclick="updateTaskStatus(<?= $task['id'] ?>, 'in_progress')">Вернуть в работу</button>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
     <script src="assets/js/employee.js"></script>
 </body>
 </html>
-	
-    </tbody>
-</table>

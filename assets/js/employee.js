@@ -1,7 +1,5 @@
-// assets/js/employee.js
-
 function updateTaskStatus(taskId, status) {
-    if (confirm('Подтвердите изменение статуса')) {
+    if (confirm('Вы уверены, что хотите изменить статус задачи?')) {
         fetch('update_task_status.php', {
             method: 'POST',
             headers: {
@@ -23,4 +21,3 @@ function updateTaskStatus(taskId, status) {
         });
     }
 }
-
