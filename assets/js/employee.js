@@ -1,20 +1,26 @@
-<!-- employee.php -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сотрудник</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
-</head>
-<body>
-    <h1>Ваши задачи</h1>
-    <!-- Таблица задач -->
-    <table>
-        <!-- Строки задач -->
-    </table>
+// assets/js/employee.js
 
-    <!-- Подключение JavaScript -->
-    <script src="assets/js/employee.js"></script>
-</body>
-</html>
+function updateTaskStatus(taskId, status) {
+    if (confirm('Подтвердите изменение статуса')) {
+        fetch('update_task_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ task_id: taskId, status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Статус задачи обновлен!');
+                location.reload(); // Перезагрузка страницы для обновления данных
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Произошла ошибка: ' + error);
+        });
+    }
+}
+
